@@ -1,9 +1,9 @@
 
 
 --========================ساخت تابع تبدیل تاریخ میلادی به شمسی======
-IF object_id(N'fn_MiladiShamsi', N'FN') IS NOT NULL
-    DROP FUNCTION fn_MiladiShamsi
-GO
+--IF object_id(N'fn_MiladiShamsi', N'FN') IS NOT NULL
+--DROP FUNCTION fn_MiladiShamsi
+--GO
 CREATE FUNCTION  [dbo].[fn_MiladiShamsi](@DateMiladi As DATE) 
 RETURNS NVARCHAR(10)
  AS  
