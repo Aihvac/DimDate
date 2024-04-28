@@ -1,5 +1,13 @@
-CREATE FUNCTION [dbo].[fn_TarikhMiladi_To_Shamsi] ( @DateMiladi DATE )RETURNS NVARCHAR(10)
-BEGIN
+
+
+--========================ساخت تابع تبدیل تاریخ میلادی به شمسی======
+IF object_id(N'fn_MiladiShamsi', N'FN') IS NOT NULL
+    DROP FUNCTION fn_MiladiShamsi
+GO
+CREATE FUNCTION  [dbo].[fn_MiladiShamsi](@DateMiladi As DATE) 
+RETURNS NVARCHAR(10)
+ AS  
+BEGIN 
 DECLARE @SalShamsi AS INT ,@MahShamsi AS INT ,@RoozShamsi AS INT 
 ,@SalMiladi AS INT ,@MahMiladi AS INT ,@DayMiladi AS INT 
 ,@SaleKabiseh AS INT ,@Sale2Kabiseh AS INT 
@@ -78,7 +86,39 @@ BEGIN
 
 END
 
-SET @DayDate = REPLACE(RIGHT(STR(@SalShamsi, 4), 4), ' ', '0') + '/'+ REPLACE(STR(@MahShamsi, 2), ' ', '0') + '/' + REPLACE(( STR(@RoozShamsi,2) ), ' ', '0')
-
-RETURN @DayDate
+Return REPLACE(RIGHT(STR(@SalShamsi, 4), 4), ' ', '0') 
+  +'-' + REPLACE(STR(@MahShamsi, 2), ' ', '0')
+  + '-' +REPLACE(( STR(@RoozShamsi,2) ), ' ', '0')
 END
+
+
+--==============ساخت جدول با سه ستون تاریخ میلادی و شمسی و شماره روز در هفته============================================
+DROP TABLE IF Exists DimDate
+CREATE TABLE DimDate (
+	Autoid int IDENTITY(1,1) NOT NULL,
+	DateMiladi DATE NOT NULL PRIMARY KEY,
+	Tarikh NVARCHAR(10) Null ,
+	DayInWeek INT  NULL,
+);
+WITH [range] AS (
+    SELECT 0 as v
+    UNION ALL
+    SELECT v + 1
+    FROM range t
+    WHERE t.v < 100
+)
+INSERT INTO dbo.DimDate ( DateMiladi )
+SELECT dateadd(day, v, '2018-01-01')  FROM [range]
+  
+--========آپدیت تاریخ شمسی و روز هفته در جدول =====================
+UPDATE DimDate SET Tarikh = dbo.[fn_MiladiShamsi](DateMiladi) 
+					, DayInWeek = DATEPART(WEEKDAY, DimDate.DateMiladi)
+
+SELECT * From dbo.DimDate 
+--===================================================================
+
+
+
+
+
+
